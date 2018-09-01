@@ -1,0 +1,33 @@
+package com.simon.rulebook.examples;
+
+import com.deliveredtechnologies.rulebook.FactMap;
+import com.deliveredtechnologies.rulebook.NameValueReferableMap;
+import com.deliveredtechnologies.rulebook.lang.RuleBookBuilder;
+
+public class PetMessageRuleBook {
+	/*
+	 * arg[0] the number of pets arg[1] the number of kids
+	 */
+	public static void main(String args[]) {
+		NameValueReferableMap factMap = new FactMap();
+		factMap.setValue("sound", "meow");
+		factMap.setValue("action", "sleep");
+
+		com.deliveredtechnologies.rulebook.model.RuleBook<String> petRuleBook = RuleBookBuilder.create()
+				.withResultType(String.class).withDefaultResult("You're probably lonely. You could use a pet!")
+				.addRule(rule -> rule.when(facts -> facts.IntVal("number of pets") == 0)
+						.then(facts -> facts.setValue("pet owner", false)))
+				.addRule(rule -> rule.when(facts -> facts.IntVal("number of kids") > 0)
+						.then(facts -> facts.setValue("parent", true)))
+				.addRule(rule -> rule.withFactType(Boolean.class)
+						.when(facts -> facts.getValue("parent") && !facts.getValue("pet owner"))
+						.then((facts, result) -> result.setValue("You should get a pet. Every kid should have a pet."))
+						.stop())
+				.addRule(rule -> rule.withFactType(Boolean.class).when(facts -> facts.getValue("pet owner"))
+						.then((facts, result) -> result.setValue("You're a pet owner. That's awesome!")))
+				.build();
+
+		petRuleBook.run(factMap);
+		petRuleBook.getResult().ifPresent(System.out::println);
+	}
+}
