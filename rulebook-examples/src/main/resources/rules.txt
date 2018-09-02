@@ -1,2 +1,2 @@
-general.IsAnimal({"legs": "2"})
+general.IsAnimal({"legs": "4"})
 general.IsCat({"sound": "meow", "action": "sleep"})

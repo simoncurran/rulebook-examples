@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils;
 import com.deliveredtechnologies.rulebook.Fact;
 import com.deliveredtechnologies.rulebook.FactMap;
 import com.deliveredtechnologies.rulebook.NameValueReferableMap;
+import com.deliveredtechnologies.rulebook.Result;
 import com.deliveredtechnologies.rulebook.lang.RuleBookBuilder;
 import com.deliveredtechnologies.rulebook.model.AuditableRule;
 import com.deliveredtechnologies.rulebook.model.Rule;
@@ -46,6 +47,11 @@ public class RulesByNameExecutor {
 				rulebook.setDefaultResult(false);
 				rulebook.run(factMap);
 				System.out.println("result=" + rulebook.getResult());
+				Result result = (Result)rulebook.getResult().get();
+				if (result.getValue().equals(Boolean.FALSE)) {
+					System.out.println("Result was false.  Breaking chain...");
+					break;
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
