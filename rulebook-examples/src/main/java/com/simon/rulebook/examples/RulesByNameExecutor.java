@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
+import com.deliveredtechnologies.rulebook.Fact;
 import com.deliveredtechnologies.rulebook.FactMap;
 import com.deliveredtechnologies.rulebook.NameValueReferableMap;
 import com.deliveredtechnologies.rulebook.lang.RuleBookBuilder;
@@ -41,9 +42,36 @@ public class RulesByNameExecutor {
 				} else {
 					ruleInstance = new RuleAdapter(clazz.newInstance());
 				}
-				RuleBook ruleBook = RuleBookBuilder.create().addRule(ruleInstance).build();
-				ruleBook.run(factMap);
+				RuleBook rulebook = RuleBookBuilder.create().addRule(ruleInstance).build();
+				rulebook.setDefaultResult(false);
+				rulebook.run(factMap);
+				System.out.println("result=" + rulebook.getResult());
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void execute2() {
+		try {
+			List<String> ruleAndFactList = FileUtils.readLines(new File("src/main/resources/rules.txt"));
+			System.out.println("rules=" + ruleAndFactList);
+			RuleBookBuilder builder = RuleBookBuilder.create();
+			NameValueReferableMap factMap = null;
+			for (String ruleAndFact : ruleAndFactList) {
+				String rule = getRule(ruleAndFact);
+				factMap = getFactsMap(ruleAndFact);
+				Class clazz = Class.forName(RULES_PACKAGE + rule);
+				Rule ruleInstance = null;
+				if (isAuditable) {
+					ruleInstance = new AuditableRule(new RuleAdapter(clazz.newInstance()), clazz.getSimpleName());
+				} else {
+					ruleInstance = new RuleAdapter(clazz.newInstance());
+				}
+				builder.addRule(ruleInstance);
+				
+			}
+			builder.build().run(factMap);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -54,11 +82,26 @@ public class RulesByNameExecutor {
 		Set<Entry<String, Object>> entires = map.entrySet();
 		NameValueReferableMap factMap = new FactMap();
 		for (Entry<String, Object> e : entires) {
-			factMap.setValue(e.getKey(), e.getValue());
-			System.out.println("Adding fact :key=" + e.getKey() + ", value=" + e.getValue());
+			Object value = e.getValue();
+			factMap.setValue(e.getKey(), narrow(value));
+			System.out.println("Adding fact :key=" + e.getKey() + ", value=" + narrow(value));
 		}
 		System.out.println("factMap=" + factMap);
 		return factMap;
+	}
+
+	private Object narrow(Object value) {
+		Object result = value;
+		if (value instanceof String) {
+			// TODO: Add code to check if it looks like an integer.
+			try {
+				result = Integer.parseInt((String)value);
+				System.out.println("Integer result=" + result);
+			} catch (NumberFormatException e) {
+			}
+		}
+		System.out.println("result=" + result + ", class=" + result.getClass().getSimpleName());
+		return result;
 	}
 
 	private Map<String, Object> parseFactsIntoMap(String ruleAndFact) {

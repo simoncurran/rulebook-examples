@@ -1,1 +1,2 @@
-general.MyPetTypeRule({"sound": "meow", "action": "sleep"})
+general.IsAnimal({"legs": "2"})
+general.IsCat({"sound": "meow", "action": "sleep"})
